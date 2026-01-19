@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "WebSearch",
+      "WebFetch(domain:react-photo-album.com)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(git checkout:*)",
+      "Bash(npx tsx:*)",
+      "Bash(curl:*)",
+      "Bash(head:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(dir:*)",
+      "Bash(for img in \"IMG_1391-ritagliata.jpg\" \"IMG_1353.jpg\" \"066_CB_183tagliata-scaled-1.jpg\" \"10.della-Brochure-scaled-1.jpg\" \"101_CB_258-scaled-1.jpg\" \"08.-della-Brochure-scaled-1.jpg\" \"01_carmina-1600x900-1.jpg\" \"Otello-preludio-scaled-1.jpg\" \"Otello-Canzone-Salice-scaled-1.jpg\" \"077_PROVE-Opening-Gala_HIGH-RES-DEF_MG_4321-scaled-1.jpg\")",
+      "Bash(do echo \"Downloading $img...\")",
+      "Bash(done)",
+      "Bash(for img in \"072_PROVE-Opening-Gala_HIGH-RES-DEF_MG_4277-scaled-1.jpg\" \"024_Opening-Gala_HIGH-RES-DEF_MG_4613-scaled-1.jpg\" \"Otello-Bozzetto-Finale-scaled-1.jpg\" \"Bozzetto-Otello-n2-19-marzo-1.jpg\" \"Bozzetto-Otello-n1-19-marzo-1.jpg\" \"067_PROVE-Opening-Gala_HIGH-RES-DEF_MG_4234-scaled-1.jpg\" \"069_PROVE-Opening-Gala_HIGH-RES-DEF_MG_4252-scaled-1.jpg\" \"operamagazine.webp\" \"Corriere_header_ok.jpg\")",
+      "Bash(powershell -Command \"Get-ChildItem ''Q:\\\\Pat\\\\mietta\\\\public\\\\fonts''\")",
+      "Bash(powershell -Command:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

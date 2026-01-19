@@ -1,0 +1,369 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import {
+  Container,
+  Title,
+  Button,
+  Stack,
+  Card,
+  Group,
+  Text,
+  TextInput,
+  Textarea,
+  Select,
+  Modal,
+  ActionIcon,
+  Badge,
+  NumberInput,
+  Paper,
+  Alert,
+  Divider,
+  Box,
+} from '@mantine/core';
+import { IconPlus, IconTrash, IconEdit, IconGripVertical, IconArrowUp, IconArrowDown, IconInfoCircle, IconPhoto } from '@tabler/icons-react';
+import { Section } from '@/types/section';
+
+const SECTION_TYPES = [
+  { value: 'HeaderImageFull', label: 'Header con Immagine Full' },
+  { value: 'TitleLeftTextRight', label: 'Titolo Sinistra - Testo Destra' },
+  { value: 'ImageBoxRightFullh', label: 'Immagine Box Destra' },
+  { value: 'ImageBoxLeftFullh', label: 'Immagine Box Sinistra' },
+];
+
+const ANIMATIONS = [
+  { value: 'fadeUp', label: 'Fade Up' },
+  { value: 'fadeDown', label: 'Fade Down' },
+  { value: 'fadeLeft', label: 'Fade Left' },
+  { value: 'fadeRight', label: 'Fade Right' },
+  { value: 'fadeIn', label: 'Fade In' },
+  { value: 'scale', label: 'Scale' },
+];
+
+export default function AdminPage() {
+  const [sections, setSections] = useState<Section[]>([]);
+  const [modalOpened, setModalOpened] = useState(false);
+  const [editingSection, setEditingSection] = useState<Section | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [formData, setFormData] = useState({
+    section_type: 'HeaderImageFull',
+    title: '',
+    text: '',
+    image: '',
+    animation: 'fadeUp',
+    animation_delay: 0.1,
+  });
+
+  useEffect(() => {
+    fetchSections();
+  }, []);
+
+  const fetchSections = async () => {
+    try {
+      const response = await fetch('/api/sections');
+      const data = await response.json();
+      setSections(data);
+    } catch (error) {
+      console.error('Error fetching sections:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const order_index = editingSection ? editingSection.order_index : sections.length;
+
+      if (editingSection) {
+        await fetch(`/api/sections/${editingSection.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, order_index }),
+        });
+      } else {
+        await fetch('/api/sections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, order_index }),
+        });
+      }
+
+      fetchSections();
+      closeModal();
+    } catch (error) {
+      console.error('Error saving section:', error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Sei sicuro di voler eliminare questa sezione?')) return;
+
+    try {
+      await fetch(`/api/sections/${id}`, { method: 'DELETE' });
+      fetchSections();
+    } catch (error) {
+      console.error('Error deleting section:', error);
+    }
+  };
+
+  const moveSection = async (index: number, direction: 'up' | 'down') => {
+    const newSections = [...sections];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+    if (targetIndex < 0 || targetIndex >= newSections.length) return;
+
+    [newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]];
+
+    const reorderedSections = newSections.map((section, idx) => ({
+      id: section.id!,
+      order_index: idx,
+    }));
+
+    try {
+      await fetch('/api/sections/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sections: reorderedSections }),
+      });
+      fetchSections();
+    } catch (error) {
+      console.error('Error reordering sections:', error);
+    }
+  };
+
+  const openModal = (section?: Section) => {
+    if (section) {
+      setEditingSection(section);
+      setFormData({
+        section_type: section.section_type,
+        title: section.title || '',
+        text: section.text || '',
+        image: section.image || '',
+        animation: section.animation,
+        animation_delay: section.animation_delay,
+      });
+    } else {
+      setEditingSection(null);
+      setFormData({
+        section_type: 'HeaderImageFull',
+        title: '',
+        text: '',
+        image: '',
+        animation: 'fadeUp',
+        animation_delay: 0.1,
+      });
+    }
+    setModalOpened(true);
+  };
+
+  const closeModal = () => {
+    setModalOpened(false);
+    setEditingSection(null);
+  };
+
+  if (loading) return <Container><Text>Caricamento...</Text></Container>;
+
+  return (
+    <Container size="xl" py="xl">
+      <Stack gap="xl">
+        <Paper shadow="xs" p="xl" radius="md" withBorder>
+          <Group justify="space-between" align="flex-start">
+            <Box>
+              <Title order={2} mb="xs">Gestione Sezioni Homepage</Title>
+              <Text size="sm" c="dimmed">
+                Crea, modifica e riordina le sezioni dinamiche della homepage
+              </Text>
+            </Box>
+            <Button
+              leftSection={<IconPlus size={18} />}
+              onClick={() => openModal()}
+              size="md"
+            >
+              Nuova Sezione
+            </Button>
+          </Group>
+        </Paper>
+
+        {sections.length === 0 ? (
+          <Alert icon={<IconInfoCircle size={20} />} title="Nessuna sezione" color="blue">
+            Non ci sono ancora sezioni nel database. Clicca su "Nuova Sezione" per iniziare a costruire la tua homepage dinamica.
+          </Alert>
+        ) : (
+          <>
+            <Title order={4}>Sezioni Attive ({sections.length})</Title>
+            <Stack gap="md">
+              {sections.map((section, index) => (
+                <Card key={section.id} shadow="sm" padding="lg" withBorder radius="md">
+                  <Group justify="space-between" wrap="nowrap">
+                    <Group gap="md" style={{ flex: 1 }}>
+                      <Box style={{ color: '#868e96' }}>
+                        <IconGripVertical size={24} />
+                      </Box>
+                      <Box style={{ flex: 1 }}>
+                        <Group gap="xs" mb={5}>
+                          <Badge color="blue" variant="light" size="lg">
+                            #{index + 1}
+                          </Badge>
+                          <Text fw={600} size="md">
+                            {SECTION_TYPES.find(t => t.value === section.section_type)?.label}
+                          </Text>
+                        </Group>
+                        <Text size="sm" c="dimmed" lineClamp={1}>
+                          {section.title?.replace(/<[^>]*>/g, '') || 'Senza titolo'}
+                        </Text>
+                        <Group gap="xs" mt={8}>
+                          <Badge size="sm" color="grape" variant="dot">
+                            {section.animation}
+                          </Badge>
+                          {section.image && (
+                            <Badge size="sm" color="teal" variant="dot" leftSection={<IconPhoto size={12} />}>
+                              {section.image}
+                            </Badge>
+                          )}
+                        </Group>
+                      </Box>
+                    </Group>
+                    <Group gap="xs" wrap="nowrap">
+                      <ActionIcon
+                        variant="light"
+                        color="gray"
+                        size="lg"
+                        onClick={() => moveSection(index, 'up')}
+                        disabled={index === 0}
+                        title="Sposta su"
+                      >
+                        <IconArrowUp size={18} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="light"
+                        color="gray"
+                        size="lg"
+                        onClick={() => moveSection(index, 'down')}
+                        disabled={index === sections.length - 1}
+                        title="Sposta giù"
+                      >
+                        <IconArrowDown size={18} />
+                      </ActionIcon>
+                      <Divider orientation="vertical" />
+                      <ActionIcon
+                        variant="light"
+                        color="blue"
+                        size="lg"
+                        onClick={() => openModal(section)}
+                        title="Modifica"
+                      >
+                        <IconEdit size={18} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        size="lg"
+                        onClick={() => handleDelete(section.id!)}
+                        title="Elimina"
+                      >
+                        <IconTrash size={18} />
+                      </ActionIcon>
+                    </Group>
+                  </Group>
+                </Card>
+              ))}
+            </Stack>
+          </>
+        )}
+      </Stack>
+
+      <Modal
+        opened={modalOpened}
+        onClose={closeModal}
+        title={
+          <Group>
+            <Title order={3}>
+              {editingSection ? 'Modifica Sezione' : 'Nuova Sezione'}
+            </Title>
+          </Group>
+        }
+        size="xl"
+      >
+        <Stack gap="lg">
+          <Box>
+            <Title order={5} mb="xs">Tipo di Contenuto</Title>
+            <Select
+              label="Seleziona il layout della sezione"
+              description="Ogni tipo ha campi specifici (titolo, testo, immagine)"
+              data={SECTION_TYPES}
+              value={formData.section_type}
+              onChange={(value) => setFormData({ ...formData, section_type: value! })}
+              size="md"
+            />
+          </Box>
+
+          <Divider label="Contenuto" labelPosition="center" />
+
+          <TextInput
+            label="Titolo"
+            description="Puoi usare HTML: <b>grassetto</b>, <i>corsivo</i>, <br/> per andare a capo"
+            placeholder="Es: La nostra <b>storia</b><br/>inizia qui"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            size="md"
+          />
+
+          <Textarea
+            label="Testo"
+            description="Testo più lungo, supporta anche HTML"
+            placeholder="Il testo della sezione..."
+            value={formData.text}
+            onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+            minRows={4}
+            size="md"
+          />
+
+          <TextInput
+            label="Immagine"
+            description="Nome file nella cartella public/ oppure URL completo"
+            placeholder="Es: immagine.jpg oppure https://..."
+            value={formData.image}
+            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+            size="md"
+            leftSection={<IconPhoto size={16} />}
+          />
+
+          <Divider label="Animazione" labelPosition="center" />
+
+          <Group grow>
+            <Select
+              label="Tipo Animazione"
+              description="Effetto d'ingresso della sezione"
+              data={ANIMATIONS}
+              value={formData.animation}
+              onChange={(value) => setFormData({ ...formData, animation: value! })}
+              size="md"
+            />
+
+            <NumberInput
+              label="Ritardo (secondi)"
+              description="Pausa prima dell'animazione"
+              value={formData.animation_delay}
+              onChange={(value) => setFormData({ ...formData, animation_delay: Number(value) })}
+              min={0}
+              max={2}
+              step={0.1}
+              decimalScale={1}
+              size="md"
+            />
+          </Group>
+
+          <Group justify="space-between" mt="xl">
+            <Button variant="subtle" color="gray" onClick={closeModal} size="md">
+              Annulla
+            </Button>
+            <Button onClick={handleSubmit} size="md">
+              {editingSection ? 'Salva Modifiche' : 'Crea Sezione'}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </Container>
+  );
+}
