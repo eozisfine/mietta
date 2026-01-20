@@ -1,4 +1,4 @@
-import { Image } from '@mantine/core';
+import { Title } from '@mantine/core';
 import classes from './navbar.module.css';
 import Link from "next/link";
 import NavbarClient from "@/components/navbarClient";
@@ -10,8 +10,19 @@ export default function Navbar() {
       <div className={classes.inner}>
         <NavbarClient />
 
-        <Link href="/">
-          <Image src={'/logo.svg'} alt={'Sassi Arredamenti'} w={107}/>
+        <Link href="/" style={{ textDecoration: 'none' }}>
+          <Title
+            order={1}
+            style={{
+              fontFamily: 'var(--font-title), Buda, serif',
+              fontSize: '1.8rem',
+              fontWeight: 400,
+              color: '#4A4A4A',
+              letterSpacing: '2px',
+            }}
+          >
+            Mietta Corli
+          </Title>
         </Link>
 
         <div className={classes.links}>

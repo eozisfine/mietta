@@ -39,9 +39,20 @@ export default async function Home() {
 
   if (!sections || sections.length === 0) {
     return (
-      <div className={styles.page}>
-        <p>Homepage non configurata. Esegui la migrazione con:</p>
-        <code>npx tsx scripts/migrations/001-seed-homepage.ts</code>
+      <div className={styles.page} style={{ padding: '100px 20px', textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-title), Buda, serif', marginBottom: '20px' }}>
+          Database non inizializzato
+        </h1>
+        <p style={{ marginBottom: '10px' }}>Esegui il seed del database chiamando:</p>
+        <code style={{
+          display: 'block',
+          background: '#f5f5f5',
+          padding: '15px',
+          borderRadius: '8px',
+          fontFamily: 'monospace'
+        }}>
+          POST /api/seed-mietta
+        </code>
       </div>
     );
   }
